@@ -9,7 +9,7 @@
 
 ModuleSceneIntro::ModuleSceneIntro(Application* app, bool start_enabled) : Module(app, start_enabled)
 {
-	circle = NULL;
+	circle = background = NULL;
 	ray_on = false;
 	sensed = false;
 }
@@ -25,14 +25,24 @@ bool ModuleSceneIntro::Start()
 
 	App->renderer->camera.x = App->renderer->camera.y = 0;
 	//loading textures 
-	circle = App->textures->Load("pinball/wheel.png"); //MUST change it for the sprite of our ball
-	//loading 
+	circle = App->textures->Load("pinball/PokeBall_std.png"); //MUST change it for the sprite of our ball
+	background = App->textures->Load("pinball/background.png");
+													   
+	//loading audio
 	bonus_fx = App->audio->LoadFx("pinball/bonus.wav");
 
-	chains.add(App->physics->CreateChain(0, 0, taulellretalllat, 126,b2BodyType::b2_staticBody));
-	chains.add(App->physics->CreateChain(0, 0, stuff, 16, b2BodyType::b2_staticBody));
-	chains.add(App->physics->CreateChain(0, 0, mapatallat, 8, b2BodyType::b2_staticBody));
+	chains.add(App->physics->CreateChain(0, 0, board, 182 ,b2BodyType::b2_staticBody));
+	chains.add(App->physics->CreateChain(0, 0, L_left, 24, b2BodyType::b2_staticBody));
+	chains.add(App->physics->CreateChain(0, 0, L_right, 24, b2BodyType::b2_staticBody));
+	chains.add(App->physics->CreateChain(0, 0, triangle_right, 18, b2BodyType::b2_staticBody));
+	chains.add(App->physics->CreateChain(0, 0, triangle_left, 16, b2BodyType::b2_staticBody));
+	chains.add(App->physics->CreateChain(0, 0, topwall, 38, b2BodyType::b2_staticBody));
+	chains.add(App->physics->CreateChain(0, 0, balls_warehouse, 30, b2BodyType::b2_staticBody));
+
 	//sensor = App->physics->CreateRectangleSensor(SCREEN_WIDTH / 2, SCREEN_HEIGHT, SCREEN_WIDTH, 50);
+
+	//we have to add the first ball in the map
+	circles.add(App->physics->CreateCircle(550,800 , 9));
 
 	return ret;
 }
@@ -57,7 +67,7 @@ update_status ModuleSceneIntro::Update()
 
 	if(App->input->GetKey(SDL_SCANCODE_1) == KEY_DOWN)
 	{
-		circles.add(App->physics->CreateCircle(App->input->GetMouseX(), App->input->GetMouseY(), 6));
+		circles.add(App->physics->CreateCircle(App->input->GetMouseX(), App->input->GetMouseY(), 9));
 		circles.getLast()->data->listener = this;
 	}
 	// Prepare for raycast ------------------------------------------------------
@@ -71,13 +81,14 @@ update_status ModuleSceneIntro::Update()
 
 	// All draw functions ------------------------------------------------------
 	p2List_item<PhysBody*>* c = circles.getFirst();
+	
+	App->renderer->Blit(background, 0, 0, NULL, 0.0f, NULL);
 
 	while(c != NULL)
 	{
 		int x, y;
 		c->data->GetPosition(x, y);
-		if(c->data->Contains(App->input->GetMouseX(), App->input->GetMouseY()))
-			App->renderer->Blit(NULL, x, y, NULL, 1.0f, c->data->GetRotation());
+		App->renderer->Blit(circle, x-5, y-5, NULL, 1.0f, c->data->GetRotation());
 		c = c->next;
 	}
 	// ray -----------------
